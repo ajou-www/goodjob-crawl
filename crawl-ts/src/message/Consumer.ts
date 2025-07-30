@@ -1,7 +1,6 @@
 import  { ConsumeMessage } from 'amqplib';
 import { Messenger } from './Messenger';
 import { defaultLogger as logger } from '../utils/logger';
-import { QueueNames } from './enums';
 
 
 export class Consumer extends Messenger{
@@ -31,6 +30,7 @@ export class Consumer extends Messenger{
               this.channel!.ack(msg)
             } catch (error) {
               logger.error('[Consumer][handleLiveMessage] Error acknowledging message:', error);
+              this.channel!.nack(msg, false, false);
             }
           }, delay)
         })

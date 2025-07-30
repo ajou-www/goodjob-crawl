@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { RecruitInfoRepository } from '../../src/database/RecruitInfoRepository';
 import { MysqlRecruitInfoRepository } from '../../src/database/MysqlRecruitInfoRepository';
 import { RedisUrlManager } from '../../src/url/RedisUrlManager';

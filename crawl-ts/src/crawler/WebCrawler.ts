@@ -47,7 +47,7 @@ import { webContentExtractor } from '../content/WebContentExtractor';
 
       await this.urlManager.connect();
 
-      await this.browserManager.initBrowser(10, 3000);
+      await this.browserManager.initBrowser(10, 3000,1000);
 
       this.running = true;
 
@@ -85,7 +85,7 @@ import { webContentExtractor } from '../content/WebContentExtractor';
   async visitUrl(url: string, domain: string ,context: BrowserContext ): Promise<SubUrl | void> {
 
 
-    logger.debug(`[Crawler][visitUrl] URL 방문 시작: ${url}`);
+    logger.debug(`[WebCrawler][visitUrl] URL 방문 시작: ${url}`);
     const startTime = Date.now();
 
     let subUrlResult = new SubUrl({
@@ -96,7 +96,7 @@ import { webContentExtractor } from '../content/WebContentExtractor';
     //페이지 생성
     return context.newPage()
       .then((newPage) => {
-      logger.debug(`[Crawler][visitUrl] URL 페이지 생성: ${url}`);
+      logger.debug(`[WebCrawler][visitUrl] URL 페이지 생성: ${url}`);
         page = newPage;
         return page.on('dialog', async (dialog: Dialog) => {
           await dialog.dismiss().catch((error) => {
@@ -107,10 +107,10 @@ import { webContentExtractor } from '../content/WebContentExtractor';
       // 페이지 방문
       .then(() => {
         if (page.isClosed()===true) {
-          logger.error(`[Crawler][visitUrl] 페이지가 이미 닫혀있음: ${url}`);
+          logger.error(`[WebCrawler][visitUrl] 페이지가 이미 닫혀있음: ${url}`);
           throw new Error(`[Crawler][visitUrl] 페이지가 이미 닫혀있음: ${url}`);
         }
-        logger.debug(`[Crawler][visitUrl] URL 페이지 방문 ${url}`);
+        logger.debug(`[WebCrawler][visitUrl] URL 페이지 방문 ${url}`);
         return  page.goto(url, {
           waitUntil: 'load',
           timeout: 20000 // 20초
@@ -118,7 +118,7 @@ import { webContentExtractor } from '../content/WebContentExtractor';
       })
       //페이지  내용 추출
       .then(() => {
-        logger.debug(`[Crawler][visitUrl] URL 페이지 추출 ${url}`);
+        logger.debug(`[WebCrawler][visitUrl] URL 페이지 추출 ${url}`);
         subUrlResult.finalUrl = page.url();
         subUrlResult.finalDomain = subUrlResult.finalUrl ? extractDomain(subUrlResult.finalUrl) : domain;
         return timeoutAfter(this.contentExtractor.extractPageContent(page).then((results) => ({ page, results })),60_000, new TimeoutError('extracPage 수집 시간 초과'));
@@ -148,28 +148,28 @@ import { webContentExtractor } from '../content/WebContentExtractor';
           allowed_after_robots: subUrlResult.crawledUrls.length
         };
         subUrlResult.success = true;
-        logger.eventInfo(`[Crawler][visitUrl] URL 방문 성공: ${url} (${subUrlResult.crawlStats.total}개 링크)`);
+        logger.eventInfo(`[WebCrawler][visitUrl] URL 방문 성공: ${url} (${subUrlResult.crawlStats.total}개 링크)`);
         subUrlResult.onclickUrls.forEach((url) => {
           logger.debug(url);
         })
-        logger.eventInfo(`[Crawler][visitUrl] URL 방문 완료: ${url} (${subUrlResult.crawlStats.total}개 링크)`);
+        logger.eventInfo(`[WebCrawler][visitUrl] URL 방문 완료: ${url} (${subUrlResult.crawlStats.total}개 링크)`);
         return subUrlResult
       }).catch((error) => {
-        logger.error(`[Crawler][visitUrl] URL 방문 중 오류 발생 ${url}: ${error.message}`);
+        logger.error(`[WebCrawler][visitUrl] URL 방문 중 오류 발생 ${url}: ${error.message}`);
         throw error;
       })
       .finally(() => {
         if (!page) {
-          logger.error(`[Crawler][visitUrl] 페이지가 생성되지 않았습니다: ${url}`);
+          logger.error(`[WebCrawler][visitUrl] 페이지가 생성되지 않았습니다: ${url}`);
           return;
         }
         if (page.isClosed() === true) {
-          logger.error(`[Crawler][visitUrl] 페이지가 이미 닫혀있음: ${url}`);
+          logger.error(`[WebCrawler][visitUrl] 페이지가 이미 닫혀있음: ${url}`);
           return
         }
         else {
           page.close().catch((error) => {
-            logger.error(`[Crawler][visitUrl] 페이지 닫기 중 오류 발생 ${url}: ${error.message}`);
+            logger.error(`[WebCrawler][visitUrl] 페이지 닫기 중 오류 발생 ${url}: ${error.message}`);
           })
         }
       }
@@ -217,11 +217,12 @@ async processQueue(processNumber : number, concurrency: number): Promise<void> {
         }
 
         const context = await this.browserManager.getBrowserContext(processNumber);
+        logger.info(`[WebCrawler][process] context를 성공적으로 가져왔습니니다. `)
         const visitResult = await timeoutAfter(this.visitUrl(nextUrlInfo.url, nextUrlInfo.domain ,context), 60_000, new TimeoutError('visitUrl 수집 시간 초과'))
           .catch((error) => {
             logger.error(`[Crawler][process] URL 방문 중 오류 발생: ${error.message}`);
             this.urlManager.setURLStatusByOldStatus(nextUrlInfo.url, URLSTAUS.VISITED ,URLSTAUS.NOT_VISITED);
-            throw new Error("[Crawler][process] 큐 처리 중 오류 발생");
+            throw error
           });
 
         if (!visitResult || !visitResult.text) {

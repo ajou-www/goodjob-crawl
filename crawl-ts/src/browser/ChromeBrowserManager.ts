@@ -5,13 +5,7 @@ import { Browser, Page,BrowserContext} from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
 import puppeteer from 'puppeteer';
-/**
- * Chrome 브라우저 관리 구현체
- * Puppeteer를 사용하여 Chrome 브라우저를 관리합니다.
- *
- *
- *
- */
+
 
 
 // ✅ 커스텀 에러 클래스
@@ -51,18 +45,18 @@ async initBrowser(concurrency = 8,  retries = 3, delay = 2000): Promise<Browser 
   for (let i = 0; i < retries; i++) {
 
     if (this.isLaunching) {
-      logger.debug('[BrowserManager] 브라우저가 이미 초기화 중입니다. 대기 중...');
+      logger.info('[BrowserManager] 브라우저가 이미 초기화 중입니다. 대기 중...');
       await new Promise(res => setTimeout(res, delay));
       continue;
     }
 
     if (this.browser) {
-      logger.debug('[BrowserManager][initBrowser] 이미 초기화된 브라우저가 있습니다. 재사용 중...');
+      logger.info('[BrowserManager][initBrowser] 이미 초기화된 브라우저가 있습니다. 재사용 중...');
       return this.browser;
     }
 
     try {
-      logger.debug('[BrowserManager][initBrowser] 브라우저 초기화 중...');
+      logger.info('[BrowserManager][initBrowser] 브라우저 초기화 중...');
       this.isLaunching = true;
       this.browser = await puppeteer.launch({
         headless: CONFIG.BROWSER.HEADLESS,
@@ -105,6 +99,7 @@ async initBrowser(concurrency = 8,  retries = 3, delay = 2000): Promise<Browser 
         logger.error(`puppeteer.launch() 실패 [시도 ${i + 1}/${retries}]: ${err.message}`);
         if (i === retries - 1) throw new Error("브라우저 재시도 실패");
         await new Promise(res => setTimeout(res, delay));
+        this.isLaunching=false
       }
     }
   }
