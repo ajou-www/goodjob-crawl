@@ -5,7 +5,7 @@ import router from './router/Router';
 import { swaggerUi, swaggerSpec } from './swagger/swagger';
 
 const app = express();
-const PORT = process.env.SERVER_PORT || 3000;
+const PORT = process.env.CRAWL_SERVER_PORT;
 
 // Middleware
 app.use(express.json());
