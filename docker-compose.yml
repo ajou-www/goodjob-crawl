@@ -1,0 +1,67 @@
+services:
+
+  crawl:
+    image: sehyunsix/crawl-server:latest
+    container_name: crawl-app
+    ports:
+      - "8200:8080"         # HTTP
+    depends_on:
+      - rabbitmq
+      - redis
+    env_file:
+      - .env
+    working_dir: /app/crawl-ts
+    command: ["npx", "ts-node", "src/index.ts"]
+    networks:
+      - crawl-network
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "8201:6379"
+    env_file:
+      - .env
+    # environment 섹션 제거 - .deploy.env 파일에서만 관리
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - crawl-network
+    command:
+    - /bin/sh
+    - -c
+    # - Double dollars, so that the variable is not expanded by Docker Compose
+    # - Surround by quotes, so that the shell does not split the password
+    # - The ${variable:?message} syntax causes shell to exit with a non-zero
+    #   code and print a message, when the variable is not set or empty
+    - redis-server --requirepass "$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "8202:5672"       # AMQP
+      - "8203:15672"     # Management UI
+    env_file:
+      - .env
+    volumes:
+      # RabbitMQ 데이터 영구 저장을 위한 볼륨 마운트 (추가 보안)
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - crawl-network
+
+networks:
+  crawl-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+  rabbitmq_data:
