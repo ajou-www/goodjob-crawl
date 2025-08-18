@@ -122,6 +122,18 @@ export class MysqlRecruitInfoRepository implements IRecruitInfoRepository {
   }
 
 
+  async getAllNewRecruitInfoUrl(): Promise<RecruitInfoVaildDto[] | []>{
+   try {
+      const now = new Date();
+      const result: RecruitInfoVaildDto[] = await MysqlRecruitInfoSequelize.findAll({ where: { 'job_valid_type': 0 }, attributes: ['id', 'url', 'is_public'] });
+      return result
+    } catch (error) {
+      logger.error('채용 정보 업데이트 중 오류:', error);
+      throw error;
+    }
+  }
+
+
 
   /**
    * 채용 정보 업데이트

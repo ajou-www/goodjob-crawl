@@ -22,7 +22,7 @@ export class Messenger {
       await this.channel.assertQueue(this.queue, { durable: true });
       logger.debug(`[RabbitMQ] Connected to ${config.RABBITMQ_URL}`);
     }catch(error) {
-      logger.error('[RabbitMQ] Connection error:', error);
+      logger.error(`[RabbitMQ] Connecting to ${config.RABBITMQ_URL} error:`, error);
       throw new Error('[RabbitMQ] Connection error');
     }
   }

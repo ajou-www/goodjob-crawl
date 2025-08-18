@@ -7,6 +7,7 @@ import { IRawContent } from '../models/RawContentModel';
 import { VisitResultModel } from '../models/VisitResult';
 import { defaultLogger as logger } from '../utils/logger';
 import { cd2RegionId, OTHER_REGION_ID, regionText2RegionIds } from '../trasnform/Transform';
+import { model } from 'mongoose';
 
 
 
@@ -103,6 +104,18 @@ export class GeminiParser {
     }
   }
 
+
+  async testApiKeys(): Promise<void>{
+    const tasks = this.apiKeys.map(async (key)=>{
+      const model = new GoogleGenerativeAI(key).getGenerativeModel({model: this.modelName})
+      console.log("Test Key Result:  ")
+      const result =await model.generateContent("Hello, gemini")
+      console.log(result.response.text())
+    })
+    await Promise.all(tasks);
+  }
+  
+
   async findJobEndDate(rawText: string, retryNumber: number, retryDelay: number = 1000): Promise<Date | undefined> {
     for (let attempt = 1; attempt <= retryNumber; attempt++) {
       try {
@@ -159,7 +172,10 @@ async validateRecruitInfo(rawText: string, retryNumber: number ,retryDelay: numb
         logger.debug('[GeminiParser][validateRecruitInfo] Gemini API 요청 시작...');
         const result = await model.generateContent(geminiRecruitInfoValidationPrompt(rawText))
           .then((result) =>
-            result.response?.text()
+            {
+            console.log(result)
+            return result.response?.text()
+            }
           )
           .catch(
             (error) => {
@@ -296,7 +312,10 @@ async validateRecruitInfo(rawText: string, retryNumber: number ,retryDelay: numb
         // API 호출로 채용 정보 파싱
         logger.debug('[GeminiParser][parseRawContentRetry] Gemini API 요청 시작...');
         const result =await model.generateContent(geminiRecruitInfoPrompt(rawContent.text))
-          .then((result) => result.response?.text())
+          .then((result) =>  {
+            console.log(result.response?.text())
+            return result.response?.text()
+            })
           .catch(
             (error) => {
               logger.error(`[GeminiParser][parseRawContentRetry] Gemini API에서 텍스트 응답을 받지 못했습니다.${attempt}/${retryNumber}`);
