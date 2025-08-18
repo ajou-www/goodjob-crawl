@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import {GoogleGenerativeAI,} from '@google/generative-ai';
+import {GoogleGenerativeAI, GoogleGenerativeAIFetchError} from '@google/generative-ai';
 import { GeminiResponseRecruitInfoDTO, CreateDBRecruitInfoDTO } from '../models/RecruitInfoModel';
 import { geminiRecruitInfoPrompt, geminiRegionTextPrompt, geminiRecruitInfoValidationPrompt ,geminiJobEndDatePrompt} from './prompt';
 import { geminiRecruitInfoSechma, geminiRegionCdScema ,geminiRecruitInfoValidationSechma ,geminiJobEndDateSchema} from './Schema';
@@ -7,8 +7,7 @@ import { IRawContent } from '../models/RawContentModel';
 import { VisitResultModel } from '../models/VisitResult';
 import { defaultLogger as logger } from '../utils/logger';
 import { cd2RegionId, OTHER_REGION_ID, regionText2RegionIds } from '../trasnform/Transform';
-import { model } from 'mongoose';
-
+import { apiQueue } from './ApiQueue';
 
 
 const JSON_MIME_TYPE = 'application/json';
@@ -37,7 +36,6 @@ export class GeminiParser {
   private apiKeys: string[] = [];
   private readonly modelName: string;
 
-  private apiKeyGenerator: Generator<string, string, undefined>;
   constructor() {
     // 기본 설정
     this.modelName = process.env.GEMINI_MODEL || 'gemini-2.0-flash-lite';
@@ -45,22 +43,16 @@ export class GeminiParser {
     if (this.apiKeys.some((value) => value.length !== 39)) {
       throw new Error("Gemini API KEY가 잘못되었습니다. 존재하지 않습니다. ");
     }
-    this.apiKeyGenerator = this.cycleKeyGenerator();
 
-    // API 키 설정은 initialize 메서드에서 수행
+    this.apiKeys.forEach((value,index)=>{
+      apiQueue.push({
+          id: index.toString(),
+          key: value
+      })
+    })
+
+
   }
-
-
-
-  private * cycleKeyGenerator(): Generator<string, string, undefined> {
-    let index = 0;
-    while (true) {
-      yield this.apiKeys[index];
-      index = (index + 1) % this.apiKeys.length; // 배열 범위를 넘어가면 처음으로 돌아감
-    }
-  }
-
-
 
   async loadMongoRawContent(batchSize: number): Promise<IRawContent[]> {
     try {
@@ -118,41 +110,49 @@ export class GeminiParser {
 
   async findJobEndDate(rawText: string, retryNumber: number, retryDelay: number = 1000): Promise<Date | undefined> {
     for (let attempt = 1; attempt <= retryNumber; attempt++) {
+      
+      const apiItem = await apiQueue.pop();
+      
       try {
-        const model = new GoogleGenerativeAI(this.apiKeyGenerator.next().value).getGenerativeModel({
+        const model = new GoogleGenerativeAI(apiItem.key).getGenerativeModel({
           model: this.modelName,
           generationConfig: {
             responseMimeType: JSON_MIME_TYPE,
             responseSchema: geminiJobEndDateSchema
           },
         });
-        logger.debug('[GeminiParser][validateRecruitInfo] Gemini API 요청 시작...');
+        logger.debug('[GeminiParser][findJobEndDate] Gemini API 요청 시작...');
         const result = await model.generateContent(geminiJobEndDatePrompt(rawText));
         if (!result) {
           throw new ParseError('Gemini API에서 빈 응답을 받았습니다.');
         }
         const responseText = await result.response?.text();
-        logger.info(`[GeminiParser][validateRecruitInfo] Gemini API 응답: ${responseText}`);
+        logger.info(`[GeminiParser][findJobEndDate] Gemini API 응답: ${responseText}`);
         const data = JSON.parse(responseText) as { job_end_date: string }; // JSON 파싱
 
-        if (!data.job_end_date) {
-          return;
-        }
+        let jobEndDate;
+        if (data.job_end_date) {
+          
+          let jobEndDate = this.parseDateOrNull(data.job_end_date);
+          if (!jobEndDate) {
+            logger.error(`[GeminiParser][findJobEndDate] 유효하지 않은 날짜 형식입니다: ${data.job_end_date}`);
+            throw new ParseError(`유효하지 않은 날짜 형식입니다: ${data.job_end_date}`);
+          }
 
-        const jobEndDate = this.parseDateOrNull(data.job_end_date);
-        if (!jobEndDate) {
-          logger.error(`[GeminiParser][validateRecruitInfo] 유효하지 않은 날짜 형식입니다: ${data.job_end_date}`);
-          throw new ParseError(`유효하지 않은 날짜 형식입니다: ${data.job_end_date}`);
         }
-
+        apiQueue.push(apiItem);
         return jobEndDate;
 
       } catch (error) {
-        await new Promise((resolve) => setTimeout(resolve, retryDelay)); // 1초 대기
-        logger.error(`[GeminiParser][validateRecruitInfo] 재시도 횟수 ${attempt}/${retryNumber} 증 에러 발생`);
+        // await new Promise((resolve) => setTimeout(resolve, retryDelay)); // 1초 대기
+        logger.error(`[GeminiParser][findJobEndDate] ${ error as Error} `)
+        logger.error(`[GeminiParser][findJobEndDate] 재시도 횟수 ${attempt}/${retryNumber} 증 에러 발생`);
         if (retryNumber === attempt) {
           throw new ParseError("Failed to validate recruitment info ", error);
         }
+        setTimeout(()=>{
+          apiQueue.push(apiItem)
+        },10000)
       }
     }
   }
@@ -161,7 +161,8 @@ export class GeminiParser {
 async validateRecruitInfo(rawText: string, retryNumber: number ,retryDelay: number=1000): Promise<{ result: string, reason: string } | undefined> {
     for (let attempt = 1; attempt <= retryNumber; attempt++) {
       try {
-        const model = new GoogleGenerativeAI(this.apiKeyGenerator.next().value).getGenerativeModel({
+         const apiItem = await apiQueue.pop();
+        const model = new GoogleGenerativeAI(apiItem.key).getGenerativeModel({
           model: this.modelName,
           generationConfig: {
             responseMimeType: JSON_MIME_TYPE,
@@ -230,7 +231,8 @@ async validateRecruitInfo(rawText: string, retryNumber: number ,retryDelay: numb
   async ParseRegionText(rawContent: string, retryNumber: number ,retryDelay: number=1000): Promise<string[]|undefined> {
     for (let attempt = 1; attempt <= retryNumber; attempt++) {
       try {
-        const model = new GoogleGenerativeAI(this.apiKeyGenerator.next().value).getGenerativeModel({
+        const apiItem = await apiQueue.pop();
+        const model = new GoogleGenerativeAI(apiItem.key).getGenerativeModel({
           model: this.modelName,
           generationConfig: {
             responseMimeType: JSON_MIME_TYPE,
@@ -302,7 +304,8 @@ async validateRecruitInfo(rawText: string, retryNumber: number ,retryDelay: numb
       try {
 
           // logger.debug(rawContent.text);
-        const model = new GoogleGenerativeAI(this.apiKeyGenerator.next().value).getGenerativeModel({
+        const apiItem = await apiQueue.pop();
+        const model = new GoogleGenerativeAI(apiItem.key).getGenerativeModel({
           model: this.modelName,
           generationConfig: {
             responseMimeType: JSON_MIME_TYPE,
@@ -349,6 +352,8 @@ async validateRecruitInfo(rawText: string, retryNumber: number ,retryDelay: numb
             if (data.region_id.length === 0) {
               data.region_id =[OTHER_REGION_ID]
             }
+            
+            apiQueue.push(apiItem);
             return data
           })
           .catch(

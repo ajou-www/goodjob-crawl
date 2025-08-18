@@ -54,7 +54,8 @@
     "robots-parser": "^3.0.1",
     "sequelize": "^6.37.7",
     "tldts": "^7.0.8",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "wait-queue": "^1.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
