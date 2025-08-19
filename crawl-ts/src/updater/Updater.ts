@@ -6,6 +6,7 @@ import { GeminiParser } from '../parser/GeminiParser';
 import { defaultLogger as logger } from '../utils/logger';
 import { MysqlRecruitInfoRepository } from '../database/MysqlRecruitInfoRepository';
 import { getSpringAuthToken } from '../utils/key';
+import { slackManager } from '../slack/SlackManager';
 
 
 const mysqlRecruitInfoRepository = new MysqlRecruitInfoRepository();
@@ -150,10 +151,26 @@ async updateJobAll(): Promise<void>{
 
 
     await this.updateJobEndDate()
-    .then(()=>this.updateJobValidType())
-    .then(()=>this.updateJobPublicType())
-    .then(()=>this.updateJobFavicon())
-    .then(()=>this.updateJobVector())
+    .then(()=>{
+        slackManager.sendSlackMessage("[updater] JobEndDate를 업데이트완료 했습니다.")
+        return this.updateJobValidType()
+    })
+    .then(()=>{
+        slackManager.sendSlackMessage("[updater] JobValidType를 업데이트완료 했습니다.")
+        return this.updateJobPublicType()
+    }
+    )
+    .then(()=>{
+        slackManager.sendSlackMessage("[updater] JobPublicType를 업데이트완료 했습니다.")
+        this.updateJobFavicon()
+    })
+    .then(()=>{
+        slackManager.sendSlackMessage("[updater] JobFavicon를 업데이트완료 했습니다.")
+        this.updateJobVector()
+    })
+    .then(()=>{
+        slackManager.sendSlackMessage("[updater] JobVector를 업데이트완료 했습니다..")
+    })
 }
 
 }

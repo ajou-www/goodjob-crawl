@@ -1,5 +1,6 @@
 import 'dotenv/config'
 import { updater } from "../updater/Updater";
 
-
-updater.updateJobAll()
+(async () => {
+  await updater.updateJobAll();
+})();

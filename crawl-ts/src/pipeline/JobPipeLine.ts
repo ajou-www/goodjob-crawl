@@ -25,6 +25,7 @@ export class JobPipeLine  {
   async run(): Promise<void> {
     try {
       await this.consumer.connect();
+      await this.urlManager.connect();
       logger.info('JobPipeLine 연결 성공');
       this.running = true;
       await this.consumer.handleLiveMessage(
@@ -32,7 +33,7 @@ export class JobPipeLine  {
             if (msg) {
               const rawContent = JSON.parse(msg.content.toString()) as IRawContent;
               // verify
-              await this.parser.parseRawContentRetry(rawContent, 100, 2000)
+              await this.parser.parseRecruitInfo(rawContent, 100, 2000)
                 .then(
                   (parseContent) => {
                     if (!parseContent) {

@@ -21,26 +21,27 @@ export class Consumer extends Messenger{
    this.channel.prefetch(1);
 
   console.log(" [*] Waiting for messages in %s. To exit press CTRL+C",);
-  await this.channel.consume(this.queue, (msg) => {
-    if (msg !== null) {
-      onMessage(msg).then(() =>
-        new Promise(() => {
-          setTimeout(() => {
-            try {
-              this.channel!.ack(msg)
-            } catch (error) {
-              logger.error('[Consumer][handleLiveMessage] Error acknowledging message:', error);
-              this.channel!.nack(msg, false, false);
-            }
-          }, delay)
-        })
-        )
-       .catch((err) => {
-         logger.error('[Consumer][handleLiveMessage] Error processing message:', err);
-         this.channel!.nack(msg, false, false);
-      })
+ await this.channel.consume(this.queue, async (msg) => {
+  if (!msg) return;
+
+  try {
+    await onMessage(msg);
+    // ack 즉시 or 지연
+    if(!this.channel){
+      return;
     }
-  }, { noAck: false });
+ 
+    this.channel!.ack(msg);
+    
+  } catch (err) {
+    if (this.channel && this.channel.connection) {
+      // this.channel.nack(msg, false, false);
+    } else {
+      logger.warn("Channel already closed, message cannot be nacked");
+      // 이 경우는 DLQ에 의존하는 게 안전
+    }
+  }
+}, { noAck: false });
 
 }
 

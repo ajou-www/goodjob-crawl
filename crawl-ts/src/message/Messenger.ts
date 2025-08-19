@@ -32,10 +32,13 @@ export class Messenger {
 
       if (this.connection) {
         await this.connection.close();
+        this.connection =undefined;
       }
-        if (this.channel) {
-          await this.channel.close();
-        }
+
+      if (this.channel) {
+        await this.channel.close();
+        this.channel = undefined;
+      }
 
         logger.debug(`[RabbitMQ] Close to ${config.RABBITMQ_URL}`);
       }

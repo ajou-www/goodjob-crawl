@@ -298,7 +298,7 @@ async validateRecruitInfo(rawText: string, retryNumber: number ,retryDelay: numb
   * 원본 콘텐츠 파싱
   * @param rawContent 원본 콘텐츠
   */
-  async parseRawContentRetry(rawContent: IRawContent, retryNumber: number, retryDelay: number = 1000): Promise<GeminiResponseRecruitInfoDTO | undefined> {
+  async parseRecruitInfo(rawContent: IRawContent, retryNumber: number, retryDelay: number = 1000): Promise<GeminiResponseRecruitInfoDTO | undefined> {
 
     for (let attempt = 1; attempt <= retryNumber; attempt++) {
       try {
@@ -313,7 +313,7 @@ async validateRecruitInfo(rawText: string, retryNumber: number ,retryDelay: numb
           },
         });
         // API 호출로 채용 정보 파싱
-        logger.debug('[GeminiParser][parseRawContentRetry] Gemini API 요청 시작...');
+        logger.debug('[GeminiParser][parseRecruitInfo] Gemini API 요청 시작...');
         const result =await model.generateContent(geminiRecruitInfoPrompt(rawContent.text))
           .then((result) =>  {
             console.log(result.response?.text())
@@ -321,7 +321,7 @@ async validateRecruitInfo(rawText: string, retryNumber: number ,retryDelay: numb
             })
           .catch(
             (error) => {
-              logger.error(`[GeminiParser][parseRawContentRetry] Gemini API에서 텍스트 응답을 받지 못했습니다.${attempt}/${retryNumber}`);
+              logger.error(`[GeminiParser][parseRecruitInfo] Gemini API에서 텍스트 응답을 받지 못했습니다.${attempt}/${retryNumber}`);
                if (retryNumber === attempt) {
                 throw error;
               }
@@ -330,10 +330,10 @@ async validateRecruitInfo(rawText: string, retryNumber: number ,retryDelay: numb
           .then((responseText) => {
             if (!responseText) {
 
-              logger.error(`[GeminiParser][parseRawContentRetry] Gemini API에서 빈 응답을 받았습니다.${attempt}/${retryNumber}`);
+              logger.error(`[GeminiParser][parseRecruitInfo] Gemini API에서 빈 응답을 받았습니다.${attempt}/${retryNumber}`);
               throw new ParseError('Gemini API에서 빈 응답을 받았습니다.');
             }
-            logger.debug(`[GeminiParser][parseRawContentRetry] Gemini API 응답: ${responseText}`);
+            logger.debug(`[GeminiParser][parseRecruitInfo] Gemini API 응답: ${responseText}`);
 
             const data = JSON.parse(responseText) as GeminiResponseRecruitInfoDTO
             // API 응답 유효성 처리
