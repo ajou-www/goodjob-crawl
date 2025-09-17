@@ -9,6 +9,8 @@ import { producer, Producer } from '../message/Producer';
 import { IRawContent, RawContentSchema } from '../models/RawContentModel';
 import { chromeBrowserManager, ChromeBrowserManager, timeoutAfter } from '../browser/ChromeBrowserManager';
 import { webContentExtractor } from '../content/WebContentExtractor';
+import { InMemoryProducer } from '@message/InMemoryProducer';
+import { QueueNames } from '@message/enums';
 
   /**
    * 웹 크롤러 구현체
@@ -18,7 +20,7 @@ import { webContentExtractor } from '../content/WebContentExtractor';
     browserManager: ChromeBrowserManager;
     contentExtractor: IContentExtractor;
     urlManager: RedisUrlManager;
-    rawContentProducer: Producer;
+    rawContentProducer: InMemoryProducer;
     running: boolean = false;
 
     /**
@@ -28,7 +30,7 @@ import { webContentExtractor } from '../content/WebContentExtractor';
     constructor(options: {
       browserManager: ChromeBrowserManager;
       contentExtractor: IContentExtractor;
-      rawContentProducer: Producer;
+      rawContentProducer: InMemoryProducer;
       urlManager: RedisUrlManager;
 
     }) {
@@ -266,6 +268,6 @@ export const webCralwer = new WebCrawler({
 
   browserManager: chromeBrowserManager,
   contentExtractor: webContentExtractor,
-  rawContentProducer: producer,
+  rawContentProducer: new InMemoryProducer(QueueNames.VISIT_RESULTS),
   urlManager: redisUrlManager,
 });

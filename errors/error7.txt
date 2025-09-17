@@ -1,0 +1,24 @@
+[2025-09-08T05:30:16.564Z] [INFO] [ApiQueue] 1 번 api queue 추가
+/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/channel.js:373
+    throw new IllegalOperationError(msg, stack);
+          ^
+IllegalOperationError: Channel closed
+    at Channel.<anonymous> (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/channel.js:373:11)
+    at Channel._rpc (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/channel.js:149:10)
+    at /Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/channel_model.js:63:19
+    at node:internal/util:491:21
+    at new Promise (<anonymous>)
+    at node:internal/util:477:12
+    at Channel.rpc (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/channel_model.js:64:7)
+    at Channel.assertQueue (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/channel_model.js:86:17)
+    at channel.consume.noAck (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/src/message/Consumer.ts:48:28) {
+  stackAtStateChange: `Stack capture: Connection closed: 320 (CONNECTION-FORCED) with message "CONNECTION_FORCED - broker forced connection closure with reason 'shutdown'"\n` +
+    '    at Object.accept (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/connection.js:605:15)\n' +
+    '    at Connection.mainAccept [as accept] (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/connection.js:579:33)\n' +
+    '    at Socket.go (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/connection.js:431:16)\n' +
+    '    at Socket.emit (node:events:507:28)\n' +
+    '    at Socket.emit (node:domain:489:12)\n' +
+    '    at emitReadable_ (node:internal/streams/readable:832:12)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:89:21)'
+}
+yuksehyun@YUKs-Mac-mini crawl-ts % npm run server

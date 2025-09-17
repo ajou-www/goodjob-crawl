@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import { VALID_TYPE } from '../models/MysqlRecruitInfoModel';
 import { getSpringAuthToken } from '../utils/key';
 import { MysqlRecruitInfoRepository } from '../database/MysqlRecruitInfoRepository';
+import {updater} from '../updater/Updater'
 const mysqlRecruitInfoRepository = new MysqlRecruitInfoRepository();
 const parser = new GeminiParser();
 
@@ -241,3 +242,31 @@ export async function updateJobVector(req: Request, res: Response): Promise<void
 
 
 
+/**
+ * @swagger
+ * /api/updater/all:
+ *   post:
+ *     summary: update job postings.
+ *     description: |
+ *     tags:
+ *       - Jobs
+ *     responses:
+ *       200:
+ *         description: Job vectorization completed successfully.
+ *       500:
+ *         description: Failed to vectorize jobs.
+ */
+export async function updateJobAll(req: Request, res: Response): Promise<void> {
+
+  try {
+    await updater.updateJobAll();
+    logger.info('[MysqlJobUpdaterController][vectorizeJob] Job vectorization completed successfully');
+  }
+  catch (error) {
+    if (error instanceof Error) {
+      logger.error(`[MysqlJobUpdaterController][vectorizeJob] Error vectorizing jobs: ${error.message}`);
+    }
+    res.status(500).json({ error: 'Failed to vectorize jobs' });
+  }
+  
+}

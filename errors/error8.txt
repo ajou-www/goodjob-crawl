@@ -1,0 +1,27 @@
+[2025-09-10T02:07:05.328Z] [ERROR] [Crawler][process] 큐 처리 중 오류 발생: Execution context was destroyed
+[2025-09-10T02:07:05.328Z] [INFO] [BrowserManager][initBrowser] 브라우저 초기화 중...
+[2025-09-10T02:07:05.653Z] [INFO] [BrowserManager][initBrowser] Puppeteer browser launched with PID: 69097
+[2025-09-10T02:07:25.303Z] [ERROR] ErrorGemini에게 요청을 받는데 시간을 초과했습니다.
+[2025-09-10T02:07:26.309Z] [INFO] [InMemory] Message processed from visit_results
+[2025-09-10T02:07:26.319Z] [INFO] [InMemory] Message processed from [object Object]
+[2025-09-10T02:07:26.320Z] [INFO] [InMemory] Message processed from visit_results
+[2025-09-10T02:07:39.204Z] [ERROR] ErrorGemini에게 요청을 받는데 시간을 초과했습니다.
+[2025-09-10T02:07:40.208Z] [INFO] [InMemory] Message processed from visit_results
+[2025-09-10T02:07:40.209Z] [INFO] [InMemory] Message processed from [object Object]
+[2025-09-10T02:07:40.210Z] [INFO] [InMemory] Message processed from visit_results
+[2025-09-10T02:08:26.327Z] [ERROR] ErrorGemini에게 요청을 받는데 시간을 초과했습니다.
+[2025-09-10T02:08:27.331Z] [INFO] [InMemory] Message processed from visit_results
+[2025-09-10T02:08:27.336Z] [INFO] [InMemory] Message processed from [object Object]
+[2025-09-10T02:08:27.336Z] [INFO] [InMemory] Message processed from visit_results
+[2025-09-10T02:08:40.214Z] [ERROR] ErrorGemini에게 요청을 받는데 시간을 초과했습니다.
+[2025-09-10T02:08:41.217Z] [INFO] [InMemory] Message processed from visit_results
+[2025-09-10T02:08:41.219Z] [INFO] [InMemory] Message processed from [object Object]
+[2025-09-10T02:08:41.219Z] [INFO] [InMemory] Message processed from visit_results
+[2025-09-10T02:09:27.343Z] [ERROR] ErrorGemini에게 요청을 받는데 시간을 초과했습니다.
+[2025-09-10T02:09:28.350Z] [INFO] [InMemory] Message processed from visit_results
+[2025-09-10T02:09:28.354Z] [INFO] [InMemory] Message processed from [object Object]
+[2025-09-10T02:09:28.354Z] [INFO] [InMemory] Message processed from visit_results
+[2025-09-10T02:09:41.223Z] [ERROR] ErrorGemini에게 요청을 받는데 시간을 초과했습니다.
+[2025-09-10T02:09:42.228Z] [INFO] [InMemory] Message processed from visit_results
+[2025-09-10T02:09:42.229Z] [INFO] [InMemory] Message processed from [object Object]
+[2025-09-10T02:09:42.229Z] [INFO] [InMemory] Message processed from visit_results

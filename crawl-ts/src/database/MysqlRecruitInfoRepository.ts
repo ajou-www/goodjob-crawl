@@ -1,7 +1,6 @@
 import {  CreateDBRecruitInfoDTO ,RecruitInfoUrlDto ,RecruitInfoVaildDto} from '../models/RecruitInfoModel';
 import { MysqlRecruitInfoSequelize  ,MysqlJobRegionSequelize} from '../models/MysqlRecruitInfoModel';
 import { defaultLogger as logger } from '../utils/logger';
-import { IRecruitInfoRepository } from './IRecruitInfoRepository';
 import axios from 'axios';
 
 
@@ -11,7 +10,7 @@ import axios from 'axios';
  * MySQL 데이터베이스 서비스 클래스
  * 채용 정보를 MySQL 데이터베이스에 저장하고 관리하는 서비스
  */
-export class MysqlRecruitInfoRepository implements IRecruitInfoRepository {
+export class MysqlRecruitInfoRepository  {
 
 
   /**

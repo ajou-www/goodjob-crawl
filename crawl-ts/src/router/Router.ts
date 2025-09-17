@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { startCrawler, stopCrawler, getCrawlerStatus } from '../controller/CrawlController';
 import { startJobPipeLine, stopJobPipeLine, getParserStatus } from '../controller/ParserController';
-import { updateJobEndDate, updateJobValidType, updateJobPublicType ,updateJobVector ,updateJobFavicon} from '../controller/JobUpdaterController';
+import { updateJobEndDate, updateJobValidType, updateJobPublicType ,updateJobVector ,updateJobFavicon ,updateJobAll} from '../controller/JobUpdaterController';
 
 const router = Router();
 
@@ -26,5 +26,7 @@ router.post('/updater/public-type', updateJobPublicType);
 router.post('/updater/vectorize-job', updateJobVector);
 
 router.post('/updater/favicon', updateJobFavicon);
+
+router.post('/updater/all', updateJobAll);
 
 export default router;

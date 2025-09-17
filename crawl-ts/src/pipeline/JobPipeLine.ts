@@ -5,18 +5,19 @@ import { IRawContent } from '../models/RawContentModel';
 import { GeminiParser,ParseError } from '../parser/GeminiParser';
 import { redisUrlManager,RedisUrlManager } from '../url/RedisUrlManager';
 import { RecruitInfoRepository } from '../database/RecruitInfoRepository';
+import { InMemoryConsumer } from '@message/InMemoryConsumer';
+import { timeoutAfter } from '@browser/ChromeBrowserManager';
 
 
 export class JobPipeLine  {
   private parser: GeminiParser;
-  private consumer: Consumer;
+  private consumer: InMemoryConsumer;
   private urlManager: RedisUrlManager;
   private recruitInfoRepository: RecruitInfoRepository;
-
   private running: boolean = false;
   constructor() {
     this.parser = new GeminiParser();
-    this.consumer = new Consumer(QueueNames.VISIT_RESULTS);
+    this.consumer = new InMemoryConsumer(QueueNames.VISIT_RESULTS);
     this.urlManager = redisUrlManager;
     this.recruitInfoRepository = new RecruitInfoRepository();
     this.running = false;
@@ -24,65 +25,35 @@ export class JobPipeLine  {
 
   async run(): Promise<void> {
     try {
-      await this.consumer.connect();
+      
+      await this.consumer.run();
       await this.urlManager.connect();
       logger.info('JobPipeLine 연결 성공');
       this.running = true;
       await this.consumer.handleLiveMessage(
           async (msg) => {
-            if (msg) {
-              const rawContent = JSON.parse(msg.content.toString()) as IRawContent;
+              if (msg) {
+                const rawContent : IRawContent = msg
               // verify
-              await this.parser.parseRecruitInfo(rawContent, 100, 2000)
-                .then(
-                  (parseContent) => {
-                    if (!parseContent) {
-                      throw new ParseError(" ParseContent가 존재하지 않습니다.");
-                    }
-                    if (this.parser.verifyRecruitInfo(parseContent) === false) {
-                      throw new ParseError("ParseContent가 RecruitInfo가 아닙니다.");
-                    }
-                    return this.urlManager.getFavicon(rawContent.url).then((favicon) => ({ favicon, parseContent }))
-                  }
-                )
-                .then(
-                  (context) => this.parser.makeDbRecruitInfo(context.parseContent, rawContent, context.favicon)
-                )
-                .then(
-                  (recruitInfo) => {
-                    if (!recruitInfo) { throw new ParseError("RecruitInfo가 존재하지 않습니다.") }
-                    return this.recruitInfoRepository.createRecruitInfo(recruitInfo)
-                  }
-              )
-                .then(() => {
-                  logger.eventInfo('[consumer] 채용 공고 저장 성공');
-                })
-                .catch(
-                  (error) => {
-                    if (error instanceof ParseError) {
-                      logger.error(`[consumer] Parse  중 에러 : ${error.message}`);
-                    } else {
-                      logger.error(`[consumer] 저장 중 에러 ${error}`);
-                      throw error;
-                    }
-                  }
-                )
+                const parseContent = await timeoutAfter(this.parser.parseRecruitInfo(rawContent, 10, 2000), 300_000, Error("Gemini에게 요청을 받는데 시간을 초과했습니다."))
+                if(parseContent?.is_recruit_info && this.parser.verifyRecruitInfo(parseContent)){
+                const recruitInfo =this.parser.makeDbRecruitInfo(parseContent,rawContent,null)
+                await this.recruitInfoRepository.createRecruitInfo(recruitInfo)
+              }
             }
           }
         ,1000);
     } catch (error) {
       if (error instanceof Error) {
-        logger.error(`JobPipeLine 연결 실패: ${error.message}`);
+        logger.error(`JobPipeLine 처리 중 ${error.message}`);
       }
+      throw error
     }
-    console.log('JobPipeLine 실행 중...');
   }
 
   async stop(): Promise<void> {
-    this.running = false
-    await this.consumer.close();
-    // 여기에 파이프라인 중지 로직을 추가합니다.
-    // 예시로, 데이터베이스 연결 해제, 크롤러 중지 등을 수행할 수 있습니다.
+    await this.consumer.stop()
+    this.running =false
     console.log('JobPipeLine 중지 중...');
   }
 

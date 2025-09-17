@@ -1,10 +1,9 @@
 import { CreateDBRecruitInfoDTO } from '../models/RecruitInfoModel';
 import { URLSTAUS } from '../models/ReidsModel';
-import { IRecruitInfoRepository } from './IRecruitInfoRepository';
 import { MysqlRecruitInfoRepository } from './MysqlRecruitInfoRepository';
 import { RedisUrlManager } from '../url/RedisUrlManager';
 import { defaultLogger as logger } from '../utils/logger';
-export class RecruitInfoRepository implements IRecruitInfoRepository {
+export class RecruitInfoRepository {
 
   private mysqlRepository: MysqlRecruitInfoRepository;
   private urlManager: RedisUrlManager;

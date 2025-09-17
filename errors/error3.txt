@@ -1,0 +1,23 @@
+[2025-08-27T05:50:35.003Z] [EVENT] EVENT:[WebCrawler][visitUrl] URL 방문 완료: https://career.kr.kpmg.com/hr/rec/recruit/jobopen/controller/candidate/JobOpen310WebController/javascipt:void(0) (0개 링크)
+[2025-08-27T05:50:35.006Z] [INFO] [Crawler] URL 방문 결과 저장 완료: https://career.kr.kpmg.com/hr/rec/recruit/jobopen/controller/candidate/JobOpen310WebController/javascipt:void(0)
+[2025-08-27T05:50:35.007Z] [INFO] 도메인 career.kr.kpmg.com에 대한 허용된 URL 접두사: ["https://career.kr.kpmg.com/hr/rec/recruit/jobopen/controller/candidate/JobOpen310WebController"]
+[2025-08-27T05:50:35.007Z] [INFO] URL: https://career.kr.kpmg.com/hr/rec/recruit/jobopen/controller/candidate/JobOpen310WebController/javascipt:void(0) 허용 여부 확인 중...
+[2025-08-27T05:50:35.007Z] [INFO] [Crawler][RabbitMQ] URL 방문 전송 완료: https://career.kr.kpmg.com/hr/rec/recruit/jobopen/controller/candidate/JobOpen310WebController/javascipt:void(0)
+[2025-08-27T05:50:35.101Z] [INFO] [WebCrawler][process] context를 성공적으로 가져왔습니니다. 
+{"is_recruit_info":true,"apply_end_date":"2025-09-14T00:00:00Z","apply_start_date":"2025-08-25T00:00:00Z","company_name":"(주)비와이엔블랙야크","department":"IT(운영·기획) 부문","ideal_candidate":null,"job_description":null,"job_type":"정규직","preferred_qualifications":null,"region_id":["1165000000"],"region_text":"서울 서초구","require_experience":"경력","requirements":null,"title":"(주)비와이엔블랙야크 IT(운영·기획) 부문 경력직 채용"}
+[2025-08-27T05:50:35.616Z] [INFO] [ApiQueue] 0 번 api queue 추가
+/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/channel.js:324
+      var error = new Error(emsg);
+                  ^
+Error: Channel closed by server: 406 (PRECONDITION-FAILED) with message "PRECONDITION_FAILED - unknown delivery tag 1"
+    at Channel.accept (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/channel.js:324:19)
+    at Connection.mainAccept [as accept] (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/connection.js:579:33)
+    at Socket.go (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/connection.js:431:16)
+    at Socket.emit (node:events:507:28)
+    at Socket.emit (node:domain:489:12)
+    at emitReadable_ (node:internal/streams/readable:832:12)
+    at processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 406,
+  classId: 60,
+  methodId: 80
+}

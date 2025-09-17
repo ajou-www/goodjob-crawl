@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { JobPipeLine } from '../pipeline/JobPipeLine';
 import { defaultLogger as logger } from '../utils/logger';
-const jobPipeLine = new JobPipeLine();
+export const jobPipeLine = new JobPipeLine();
 
 /**
  * @swagger

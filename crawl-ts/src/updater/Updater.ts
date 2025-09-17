@@ -7,6 +7,7 @@ import { defaultLogger as logger } from '../utils/logger';
 import { MysqlRecruitInfoRepository } from '../database/MysqlRecruitInfoRepository';
 import { getSpringAuthToken } from '../utils/key';
 import { slackManager } from '../slack/SlackManager';
+import { jobPipeLine } from '../controller/ParserController';
 
 
 const mysqlRecruitInfoRepository = new MysqlRecruitInfoRepository();
@@ -20,16 +21,17 @@ class Updater{
             attributes: ['id', 'text'],
             where: {
               job_valid_type: {
-              [Op.ne]: VALID_TYPE.EXPIRED
+              [Op.eq]: VALID_TYPE.DEFAULT
               } // Only process active jobs
             }
         
           })
-          
+          logger.info(`[MysqlJobUpdaterController][updateJobEndDate] ${rawContents.length}`);
+
           for (const rawContent of rawContents) {
             try {
-              const jobEndDate = await parser.findJobEndDate(rawContent.text, 2000,2000);
-              if (jobEndDate) {
+              const jobEndDate = parser.parseDateFromText5(rawContent.text);
+              if (jobEndDate instanceof Date) {
                 logger.info(`[MysqlJobUpdaterController][findJobEndDate] ${rawContent.id}: ${jobEndDate}`);
                 await MysqlRecruitInfoSequelize.update({ apply_end_date : jobEndDate}, {where: { id: rawContent.id }})
               } else {
@@ -138,7 +140,7 @@ async  updateJobFavicon(): Promise<void> {
 async  updateJobVector(): Promise<void> {
   try {
     await mysqlRecruitInfoRepository.vectorizeJob();
-    logger.info('[MysqlJobUpdaterController][vectorizeJob] Job vectorization completed successfully');
+        logger.info('[MysqlJobUpdaterController][vectorizeJob] Job vectorization completed successfully');
   }
   catch (error) {
     if (error instanceof Error) {
@@ -149,6 +151,7 @@ async  updateJobVector(): Promise<void> {
 
 async updateJobAll(): Promise<void>{
 
+    await jobPipeLine.stop()
 
     await this.updateJobEndDate()
     .then(()=>{
@@ -162,15 +165,17 @@ async updateJobAll(): Promise<void>{
     )
     .then(()=>{
         slackManager.sendSlackMessage("[updater] JobPublicType를 업데이트완료 했습니다.")
-        this.updateJobFavicon()
+        return this.updateJobFavicon()
     })
     .then(()=>{
         slackManager.sendSlackMessage("[updater] JobFavicon를 업데이트완료 했습니다.")
-        this.updateJobVector()
+        return this.updateJobVector()
     })
     .then(()=>{
         slackManager.sendSlackMessage("[updater] JobVector를 업데이트완료 했습니다..")
     })
+
+    await jobPipeLine.run()
 }
 
 }

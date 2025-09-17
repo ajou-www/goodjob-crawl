@@ -1,0 +1,15 @@
+/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/channel.js:324
+      var error = new Error(emsg);
+                  ^
+Error: Channel closed by server: 406 (PRECONDITION-FAILED) with message "PRECONDITION_FAILED - delivery acknowledgement on channel 1 timed out. Timeout value used: 1800000 ms. This timeout value can be configured, see consumers doc guide to learn more"
+    at Channel.accept (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/channel.js:324:19)
+    at Connection.mainAccept [as accept] (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/connection.js:579:33)
+    at Socket.go (/Users/yuksehyun/project/goodjob-crawl/crawl-ts/node_modules/amqplib/lib/connection.js:431:16)
+    at Socket.emit (node:events:507:28)
+    at Socket.emit (node:domain:489:12)
+    at emitReadable_ (node:internal/streams/readable:832:12)
+    at processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 406,
+  classId: 0,
+  methodId: 0
+}
